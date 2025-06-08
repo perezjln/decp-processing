@@ -25,6 +25,10 @@ from tasks_oneshot.transform import (
 
 
 def get_clean_concat():
+    """
+    Nettoie, fusionne et enrichit les données DECP, puis les enregistre aux formats CSV et Parquet.
+    Retourne le DataFrame final prêt pour les traitements suivants.
+    """
     if os.path.exists(DIST_DIR):
         shutil.rmtree(DIST_DIR)
     os.mkdir(DIST_DIR)
@@ -57,6 +61,10 @@ def get_clean_concat():
 
 
 def make_datalab_data():
+    """
+    Crée la base SQLite pour le datalab à partir du fichier Parquet principal,
+    puis normalise les tables et publie éventuellement sur data.gouv.fr.
+    """
     df = pl.read_parquet(f"{DIST_DIR}/decp.parquet")
 
     print("Enregistrement des DECP aux formats SQLite...")
@@ -78,6 +86,10 @@ def make_datalab_data():
 
 
 def make_decpinfo_data():
+    """
+    Génère les fichiers DECP sans titulaires, prépare le data package (optionnel),
+    et publie éventuellement sur data.gouv.fr.
+    """
     df = pl.read_parquet(f"{DIST_DIR}/decp.parquet")
 
     # DECP sans titulaires
@@ -103,6 +115,9 @@ def make_decpinfo_data():
 
 
 def enrich_from_sirene(df: pl.LazyFrame):
+    """
+    Ajoute les données SIRENE (unités légales) aux acheteurs et titulaires présents dans le DataFrame.
+    """
     assert os.path.exists(SIRENE_DATA_DIR + "/unites_legales.parquet")
 
     print("Extraction des SIRET des acheteurs...")
@@ -122,6 +137,9 @@ def enrich_from_sirene(df: pl.LazyFrame):
 
 
 def sirene_preprocess():
+    """
+    Prépare les données SIRENE (unités légales) si elles ne sont pas déjà présentes.
+    """
     sirene_data_dir = SIRENE_DATA_DIR
     print("SIRENE directory: " + sirene_data_dir)
 
@@ -134,6 +152,10 @@ def sirene_preprocess():
 
 
 def main():
+    """
+    Point d'entrée principal : lance le prétraitement SIRENE, la fusion/nettoyage des données,
+    la génération des fichiers DECP, la création de la base datalab et la publication.
+    """
     
     # Prétraitement des données SIRENE
     sirene_preprocess()
