@@ -11,6 +11,10 @@ def save_to_files(df: pl.DataFrame, path: str, file_format=None):
         df.write_parquet(f"{path}.parquet")
 
 def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key: str):
+    # Suppression des doublons selon la clé primaire (polars)
+    subset_cols = [col.strip().replace('"', '').replace("'", '') for col in primary_key.split(",")]
+    df = df.unique(subset=subset_cols)
+
     column_definitions = []
     for column_name, column_type in zip(df.columns, df.dtypes):
         sql_type = "TEXT"
