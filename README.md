@@ -1,156 +1,183 @@
-# DECP processing
+# DECP Processing
 
-Projet de traitement et de publication de meilleures données sur les marchés publics attribués en France. Ce projet prend sa source dans la complexité de la publication des données faite par le Ministère des Finances :
+[![Tests](https://img.shields.io/github/workflow/status/ColinMaudry/decp-processing/CI/main?label=tests)](https://github.com/ColinMaudry/decp-processing/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 
-- code source de l'agrégation des données [fermé](https://github.com/139bercy/decp-rama-v2/blob/main/README.md)
-- documentation incomplète et éparpillée
-    - https://github.com/139bercy/decp-rama-v2/blob/main/README.md
-    - https://www.data.gouv.fr/fr/datasets/5cd57bf68b4c4179299eb0e9
-    - https://data.economie.gouv.fr/pages/donnees-essentielles-de-la-commande-publique/
-- schéma de données DECP 2 [complexe à utiliser](https://github.com/ColinMaudry/decp-processing/issues/4)
+**DECP Processing** est un pipeline open source pour le traitement, la normalisation et la publication des données essentielles de la commande publique (DECP) en France. Il vise à rendre ces données plus accessibles, fiables et exploitables pour tous : entreprises, journalistes, chercheurs, citoyens, acteurs publics.
 
-Ce projet se veut collaboratif et à l'écoute des besoins des usagers potentiels : entreprises, acteurs publics, journalistes, chercheurs et chercheuses, citoyens et citoyennes.
+---
 
-Pour me contacter vous pouvez ouvrir un "issue" sur Github ou me contacter par email [colin+decp@maudry.com](mailto:colin+decp@maudry.com).
+## Sommaire
 
-## Données
+- [Présentation](#présentation)
+- [Fonctionnalités](#fonctionnalités)
+- [Données produites](#données-produites)
+- [Installation](#installation)
+  - [Environnement local](#environnement-local)
+  - [Docker](#docker)
+- [Utilisation](#utilisation)
+- [Configuration](#configuration)
+- [Tests & Qualité](#tests--qualité)
+- [Contribuer](#contribuer)
+- [Ressources & Liens](#ressources--liens)
+- [Licence](#licence)
 
-Les données produites sont les mêmes données que celles publiées par le Ministère des Finances sur data.economie.gouv.fr. J'ai choisi de prendre ces données comme source et non les DECP au format réglementaire JSON car les premières ont été nettoyées et améliorées ([code](https://github.com/139bercy/decp-augmente)) par le Ministère, ce qui me fait moins de travail.
+---
 
-Elles sont mises à dispositions aux formats CSV, Parquet et SQLite.
+## Présentation
 
-Vous pouvez...
+Le projet répond à la complexité et au manque d'ouverture du pipeline officiel du Ministère des Finances pour la publication des DECP. Il propose une alternative transparente, documentée et collaborative, adaptée aux besoins des utilisateurs.
 
-- les télécharger sur [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire/) (vous trouverez aussi plus d'informations sur ces données)
-- les visualiséer, les filtrer et télécharger sur [decp.info](https://decp.info)
+- Code source d’agrégation officiel : [fermé](https://github.com/139bercy/decp-rama-v2)
+- Documentation officielle : [éparpillée et incomplète](https://www.data.gouv.fr/fr/datasets/5cd57bf68b4c4179299eb0e9)
+- Schéma DECP complexe à exploiter
 
+**DECP Processing** simplifie, enrichit et publie ces données dans des formats modernes (CSV, Parquet, SQLite).
 
-## Pré-requis
+---
 
-- Python 3.8 ou plus récent
-- cargo ([installation rapide](https://rustup.rs))
-- fichier .env avec l'adresse des fichiers source
+## Fonctionnalités
+
+- Téléchargement automatisé des DECP consolidées
+- Nettoyage, normalisation et enrichissement (SIRENE, SIRET, etc.)
+- Export multi-formats : CSV, Parquet, SQLite
+- Publication automatisée sur [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire/)
+- Pipeline reproductible (Prefect ou mode "oneshot" sans dépendance)
+- Compatible Docker
+- Tests unitaires et outils de qualité de code
+
+---
+
+## Données produites
+
+- **Source** : Données consolidées du Ministère des Finances ([data.gouv.fr](https://www.data.gouv.fr/fr/datasets/5cd57bf68b4c4179299eb0e9))
+- **Formats** : CSV, Parquet, SQLite
+- **Téléchargement** :
+  - [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire/)
+  - [decp.info](https://decp.info) (visualisation, filtrage, téléchargement)
+
+---
 
 ## Installation
 
-### En utilisant un environnement virtuel (recommandé)
-Je vous recommande d'utiliser un environnement virtuel Python pour isoler l'installation des dépendances :
+### Environnement local
 
-```bash
-python -m venv .venv
-```
+1. **Prérequis** :
+   - Python 3.8+
+   - [Rust/Cargo](https://rustup.rs) (pour Polars)
+   - [pip](https://pip.pypa.io/)
 
-Activez l'environnement virtuel :
+2. **Cloner le dépôt** :
+   ```bash
+   git clone https://github.com/ColinMaudry/decp-processing.git
+   cd decp-processing
+   ```
 
-```bash
-source .venv/bin/activate
-```
+3. **Créer un environnement virtuel** :
+   ```bash
+   python -m venv .venv
+   .venv\\Scripts\\activate  # Windows
+   # ou
+   source .venv/bin/activate  # Linux/Mac
+   ```
 
-Installez les dépendances :
+4. **Installer les dépendances** :
+   ```bash
+   pip install -r requirements.txt
+   pip install .[dev]  # Pour les outils de dev (optionnel)
+   ```
 
-```bash
-pip install .
-```
+5. **Configurer l'environnement** :
+   ```bash
+   cp template.env .env
+   # Éditez .env selon vos besoins (chemins, clés API, etc.)
+   ```
 
-Installez les dépendances de développement et l'auto-formatage :
+### Docker
 
-```bash
-pip install .[dev]
-pre-commit install
-# à chaque commit black et cie se lancent et reformattent les fichiers si besoin, ça peut demander de "git add"
-# de nouveau pour prendre en compte le reformatage dans le commit
+1. **Construire et lancer le conteneur** :
+   ```powershell
+   ./script/docker_build_and_run.bat
+   ```
+   ou en ligne de commande :
+   ```bash
+   docker build -t decp_preprocessing .
+   docker run --rm -it -v ${PWD}:/app -p 4200:4200 decp_preprocessing
+   ```
 
-# installation des dépendances sous zsh
-pip install .'[dev]'
-```
+---
 
-Faites une copie de template.env, renommez-la en .env et adaptez les valeurs :
+## Utilisation
 
-```shell
-cp template.env .env
-nano .env
-```
-
-### Installation sur le serveur pour les déploiements (Linux)
-
-Ces instructions supposent que le serveur prefect est installé, configuré et démarré.
-
-Il suppose également que le work pool "local" a été créé.
-
-1. Suivre les instructions d'installation ci-dessus
-2. Démarrer le serveur prefect
-3. Adapter les chemins dans `systemd/prefect-worker.service`
-4. Copier `systemd/prefect-worker.service` dans le répertoire `/etc/systemd/system`
-5. Activer le service (pour qu'il soit démarré au démarrage du serveur)
-
-```bash
-systemctl enable prefect-worker.service
-```
-5. Démarrer le service
-```bash
-systemctl start prefect-worker.service
-```
-
-Un nouveau worker doit apparaître dans l'interface de gestion de prefect.
-
-### Avec Docker (sous Windows)
-
-Construire et lancer le container
-```bash
-./script/docker_build_and_run.bat
-```
-
-Démarrer le serveur prefect une fois dans le container
-```bash
-./script/start_server_in_docker.sh
-```
-Le serveur est accessible sur le navigateur à l'adresse http://127.0.0.1:4200/
-
-## Lancer le traitement des données (pour le développement en local)
-
-Le pré-traitement des données SIRENE doit être fait une fois pour que le traitement principal soit fonctionnel.
-
-```bash
-pytest tests/test_sirene_preprocess.py
-```
-
-Lancement du traitement principal (datalab + decp.info)
-
+### Pipeline complet (mode Prefect)
 ```bash
 python src/flows.py
 ```
 
-## Lancer le traitement des données (sur le serveur Prefect configuré dans .env)
-
-Le déploiement sur le serveur déploie à la fois un run quotidien de traitement des données et un run activable à la demande.
-
-Attention, la version de prefect du client utilisé pour le déploiement et celle utilisée pour le serveur doivent être identiques. Cela est normalement garanti par la version configurée dans `pyproject.toml`.
-
-1. Suivre les instructions de la section "Installation sur le serveur pour les déploiements"
-2. Vérifier que le `.env` est bien configuré, ce sont ces variables qui seront utilisées par les run du serveur.
-2. Déployer sur le serveur :
+### Pipeline rapide (mode oneshot, sans Prefect)
 ```bash
-python src/deploy.py
-```
-4. Le run se lancera tous les jours selon la configuration cron. Si tu souhaites exécuter le run maintenant :
-```bash
-prefect deployment run decp-processing
+python src/flows_oneshot.py
 ```
 
-## Test
-
-Pour lancer les tests unitaires :
-
-### Du pre-process des données SIRENE
-
-Ce traitement doit être fait une fois pour que le test du traitement principal soit fonctionnel.
-
+### Lancer un traitement SIRENE seul
 ```bash
-pytest tests/test_sirene_preprocess.py
+python src/flows_oneshot.py sirene_preprocess
 ```
 
-### Du traitement principal (datalab + decp.info)
+### Personnalisation
+- Modifiez le fichier `.env` pour pointer vers vos propres sources ou modifier les options de publication.
 
-```bash
-pytest tests/test_main.py
-```
+---
+
+## Configuration
+
+- `.env` : variables d'environnement (chemins, clés API, options de publication)
+- `pyproject.toml` : dépendances, options de test, etc.
+- `requirements.txt` : dépendances principales
+
+---
+
+## Tests & Qualité
+
+- **Tests unitaires** :
+  ```bash
+  pytest
+  ```
+- **Linting & formatage** :
+  ```bash
+  pre-commit run --all-files
+  ```
+
+---
+
+## Contribuer
+
+Les contributions sont bienvenues !  
+Merci de lire le [CONTRIBUTING.md](CONTRIBUTING.md) s’il existe, ou d’ouvrir une issue pour toute question.
+
+- Forkez le projet
+- Créez une branche (`git checkout -b feature/ma-fonction`)
+- Commitez vos modifications
+- Ouvrez une Pull Request
+
+---
+
+## Ressources & Liens
+
+- [Documentation officielle DECP](https://data.economie.gouv.fr/pages/donnees-essentielles-de-la-commande-publique/)
+- [Schéma DECP](https://github.com/ColinMaudry/decp-table-schema)
+- [SIRENE Open Data](https://www.data.gouv.fr/fr/datasets/r/5e4b7e9c634f411f8b8b4567)
+- [Polars](https://pola-rs.github.io/polars/py-polars/html/reference/index.html)
+- [Prefect](https://docs.prefect.io/)
+
+---
+
+## Licence
+
+Ce projet est sous licence MIT.  
+© Colin Maudry et contributeurs.
+
+---
+
+*Pour toute question, ouvrez une issue ou contactez [colin+decp@maudry.com](mailto:colin+decp@maudry.com).*
