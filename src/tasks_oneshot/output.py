@@ -1,8 +1,15 @@
+import os
 import sqlite3
 import polars as pl
 from config import DIST_DIR
 
 def save_to_files(df: pl.DataFrame, path: str, file_format=None):
+    """
+    Sauvegarde un DataFrame Polars au format CSV et/ou Parquet.
+    - df : DataFrame à sauvegarder
+    - path : chemin de base (sans extension)
+    - file_format : liste des formats à écrire (par défaut ["csv", "parquet"])
+    """
     if file_format is None:
         file_format = ["csv", "parquet"]
     if "csv" in file_format:
@@ -11,6 +18,12 @@ def save_to_files(df: pl.DataFrame, path: str, file_format=None):
         df.write_parquet(f"{path}.parquet")
 
 def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key: str):
+    """
+    Sauvegarde un DataFrame Polars dans une base SQLite.
+    - database : nom du fichier sqlite (sans extension)
+    - table_name : nom de la table à créer
+    - primary_key : clé primaire (simple ou composite)
+    """
     # Suppression des doublons selon la clé primaire (polars)
     subset_cols = [col.strip().replace('"', '').replace("'", '') for col in primary_key.split(",")]
     df = df.unique(subset=subset_cols)

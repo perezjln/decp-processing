@@ -5,6 +5,12 @@ from config import SIRENE_DATA_DIR
 def add_etablissement_data(
     df: pl.LazyFrame, etablissement_columns: list, siret_column: str
 ) -> pl.LazyFrame:
+    """
+    Ajoute les données d'établissement SIRENE à un DataFrame DECP par jointure sur le SIRET.
+    - etablissement_columns : colonnes SIRENE à ajouter
+    - siret_column : colonne du DataFrame DECP à utiliser pour la jointure
+    Retourne un LazyFrame enrichi.
+    """
     schema_etablissements = {
         "siret": "object",
         "siren": "object",
@@ -32,6 +38,13 @@ def add_etablissement_data(
 def add_unite_legale_data(
     df: pl.LazyFrame, df_sirets: pl.LazyFrame, siret_column: str, type_siret: str
 ) -> pl.LazyFrame:
+    """
+    Ajoute les données d'unité légale SIRENE à un DataFrame DECP par jointure sur le SIREN.
+    - df_sirets : DataFrame contenant les SIRET à enrichir
+    - siret_column : colonne SIRET à utiliser
+    - type_siret : "acheteur" ou "titulaire" (pour nommer les colonnes)
+    Retourne un LazyFrame enrichi.
+    """
     df_sirets = df_sirets.with_columns(pl.col(siret_column).str.head(9).alias("siren"))
     unites_legales_lf = pl.scan_parquet(SIRENE_DATA_DIR + "/unites_legales.parquet")
     df_sirets = df_sirets.join(unites_legales_lf, how="inner", on="siren")

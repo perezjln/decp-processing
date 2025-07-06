@@ -5,6 +5,15 @@ from tasks_oneshot.output import save_to_files
 from tasks_oneshot.transform import explode_titulaires
 
 def clean_decp_json(files: list):
+    """
+    Nettoie et prépare les fichiers DECP Parquet :
+    - Explosion des titulaires
+    - Remplacement des valeurs nulles et nettoyage des identifiants
+    - Ajout d'un champ uid unique
+    - Correction des dates et types
+    - Sauvegarde chaque fichier nettoyé en Parquet
+    Retourne la liste des chemins des fichiers nettoyés.
+    """
     return_files = []
     for file in files:
         lf: pl.LazyFrame = pl.scan_parquet(f"{file}.parquet")
@@ -43,6 +52,10 @@ def clean_decp_json(files: list):
     return return_files
 
 def fix_data_types(df: pl.LazyFrame):
+    """
+    Corrige les types de colonnes (int, float, date) dans un LazyFrame DECP.
+    Retourne le LazyFrame typé.
+    """
     numeric_dtypes = {
         "dureeMois": pl.Int16,
         "offresRecues": pl.Int16,

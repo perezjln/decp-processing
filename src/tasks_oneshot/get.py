@@ -12,6 +12,12 @@ from tasks_oneshot.setup import create_table_artifact
 
 
 def get_json(date_now, json_file: dict):
+    """
+    Télécharge un fichier JSON de données DECP à partir d'une URL si besoin.
+    - Si l'URL commence par 'https', télécharge le fichier et le stocke localement (si pas déjà présent).
+    - Si l'URL est un chemin local (test), retourne simplement le Path.
+    Retourne le chemin du fichier JSON local.
+    """
     url = json_file["url"]
     filename = json_file["file_name"]
 
@@ -32,7 +38,11 @@ def get_json(date_now, json_file: dict):
 
 
 def get_json_metadata(json_file: dict) -> dict:
-    """Téléchargement des métadonnées d'une ressoure (fichier)."""
+    """
+    Télécharge les métadonnées associées à une ressource DECP sur data.gouv.fr.
+    Utilisé pour enrichir les artefacts de suivi (titre, id, checksum, etc).
+    Retourne un dictionnaire de métadonnées.
+    """
     resource_id = json_file["url"].split("/")[-1]
     api_url = f"http://www.data.gouv.fr/api/1/datasets/5cd57bf68b4c4179299eb0e9/resources/{resource_id}/"
     json_metadata = get(api_url, follow_redirects=True).json()
@@ -40,7 +50,15 @@ def get_json_metadata(json_file: dict) -> dict:
 
 
 def get_decp_json() -> list:
-    """Téléchargement des DECP publiées par Bercy sur data.gouv.fr."""
+    """
+    Télécharge et prépare tous les fichiers DECP à traiter selon la configuration.
+    - Télécharge les fichiers JSON (ou utilise les fichiers locaux de test)
+    - Normalise les données en DataFrame Polars
+    - Supprime les colonnes inutiles
+    - Sauvegarde chaque DataFrame au format Parquet
+    - Crée un artefact de suivi pour Prefect ou logs
+    Retourne la liste des chemins de fichiers Parquet générés.
+    """
 
     json_files = DECP_JSON_FILES
     date_now = DATE_NOW

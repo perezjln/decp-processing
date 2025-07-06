@@ -3,6 +3,15 @@ from httpx import post
 from config import DIST_DIR
 
 def update_resource(api, dataset_id, resource_id, file_path, api_key):
+    """
+    Met à jour une ressource data.gouv.fr via l'API (upload d'un fichier).
+    - api : URL de l'API
+    - dataset_id : identifiant du dataset
+    - resource_id : identifiant de la ressource
+    - file_path : chemin du fichier à uploader
+    - api_key : clé API data.gouv.fr
+    Retourne la réponse JSON de l'API.
+    """
     url = f"{api}/datasets/{dataset_id}/resources/{resource_id}/upload/"
     headers = {"X-API-KEY": api_key}
     file = {"file": open(file_path, "rb")}
@@ -10,6 +19,10 @@ def update_resource(api, dataset_id, resource_id, file_path, api_key):
     return response.json()
 
 def publish_to_datagouv(context: str):
+    """
+    Publie les fichiers produits sur data.gouv.fr selon le contexte ("decp" ou "datalab").
+    Nécessite une clé API data.gouv.fr dans l'environnement.
+    """
     api_key = getenv("DATAGOUVFR_API_KEY")
     api = "https://www.data.gouv.fr/api/1"
     dataset_id = "608c055b35eb4e6ee20eb325"

@@ -1,6 +1,13 @@
 import polars as pl
 
 def explode_titulaires(df: pl.LazyFrame):
+    """
+    Transforme un LazyFrame DECP en explosant la colonne 'titulaires' :
+    - Un titulaire par ligne
+    - Colonnes séparées pour typeIdentifiant et id
+    - Corrige les inversions de type/id
+    Retourne un LazyFrame prêt à l'usage.
+    """
     df = df.explode("titulaires")
     df = df.select(
         pl.col("*"),
@@ -31,6 +38,12 @@ def explode_titulaires(df: pl.LazyFrame):
     return df
 
 def concat_decp_json(files: list) -> pl.DataFrame:
+    """
+    Concatène une liste de fichiers Parquet DECP en un seul DataFrame Polars.
+    - Aligne les schémas (colonnes/types) automatiquement
+    - Supprime les doublons sur (uid, titulaire_id, titulaire_typeIdentifiant)
+    Retourne le DataFrame fusionné.
+    """
     dfs = []
     all_columns = set()
     dtypes = {}
@@ -68,12 +81,20 @@ def concat_decp_json(files: list) -> pl.DataFrame:
     return df
 
 def extract_unique_acheteurs_siret(df: pl.LazyFrame):
+    """
+    Extrait la liste unique des SIRET acheteurs à partir d'un LazyFrame DECP.
+    Retourne un LazyFrame trié.
+    """
     df = df.select("acheteur_id")
     df = df.unique().filter(pl.col("acheteur_id") != "")
     df = df.sort(by="acheteur_id")
     return df
 
 def extract_unique_titulaires_siret(df: pl.LazyFrame):
+    """
+    Extrait la liste unique des SIRET titulaires (type SIRET uniquement) à partir d'un LazyFrame DECP.
+    Retourne un LazyFrame trié.
+    """
     df = df.select("titulaire_id", "titulaire_typeIdentifiant")
     df = df.unique().filter(
         pl.col("titulaire_id") != "", pl.col("titulaire_typeIdentifiant") == "SIRET"
@@ -82,6 +103,10 @@ def extract_unique_titulaires_siret(df: pl.LazyFrame):
     return df
 
 def make_decp_sans_titulaires(df: pl.DataFrame):
+    """
+    Génère un DataFrame DECP sans les colonnes titulaires (id/typeIdentifiant).
+    Retourne un DataFrame unique.
+    """
     df_decp_sans_titulaires = df.drop([
         "titulaire_id",
         "titulaire_typeIdentifiant",
@@ -90,6 +115,9 @@ def make_decp_sans_titulaires(df: pl.DataFrame):
     return df_decp_sans_titulaires
 
 def normalize_tables(df):
+    """
+    Normalise le DataFrame DECP en plusieurs tables (marches, acheteurs, entreprises, marches_titulaires) et les sauvegarde en SQLite.
+    """
     df_marches: pl.DataFrame = pl.DataFrame(df.to_arrow()).drop(
         "titulaire_id", "titulaire_typeIdentifiant"
     )
@@ -124,6 +152,10 @@ def normalize_tables(df):
     del df_marches_titulaires
 
 def sort_columns(df: pl.DataFrame, config_columns):
+    """
+    Trie les colonnes d'un DataFrame selon une liste de colonnes attendues, les autres à la fin.
+    Retourne un DataFrame réordonné.
+    """
     other_columns = []
     for col in df.columns:
         if col not in config_columns:
@@ -132,6 +164,12 @@ def sort_columns(df: pl.DataFrame, config_columns):
     return df.select(config_columns + other_columns)
 
 def get_prepare_unites_legales():
+    """
+    Prépare le fichier Parquet des unités légales SIRENE à partir du zip officiel.
+    - Télécharge le zip si besoin
+    - Décompresse et détecte le .csv
+    - Sélectionne les colonnes utiles et sauvegarde en Parquet
+    """
     import os
     import zipfile
     from httpx import get

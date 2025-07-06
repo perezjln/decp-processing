@@ -5,6 +5,10 @@ from config import DATE_NOW
 from tasks_oneshot.setup import create_table_artifact
 
 def list_data_issues(df: pl.LazyFrame):
+    """
+    Affiche le nombre de dates impossibles (hors bornes) pour chaque colonne de date du DataFrame.
+    Utile pour le contrôle qualité des données DECP.
+    """
     df = df.collect()
     date_columns = [
         "dateNotification",
@@ -28,6 +32,12 @@ def list_data_issues(df: pl.LazyFrame):
         )
 
 def generate_stats(df: pl.DataFrame):
+    """
+    Calcule et affiche des statistiques globales sur le DataFrame DECP :
+    - Nombre de lignes, colonnes, marchés, acheteurs, titulaires uniques
+    - Nombre de publications par année
+    - Enregistre un artefact de stats pour suivi
+    """
     now = datetime.now()
     df_uid: pl.DataFrame = df.select(
         "uid", "acheteur_id", "datePublicationDonnees", "dateNotification", "montant"
