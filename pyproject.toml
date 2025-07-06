@@ -27,9 +27,6 @@ dev = [
 pythonpath = [
   "src"
 ]
-testpaths = [
-    "tests",
-]
 env = [
     "DECP_JSON_FILES_PATH=data/decp_json_files_test.json",
     "PREFECT_API_URL=",
