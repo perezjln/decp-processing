@@ -19,4 +19,4 @@ RUN pip install .
 COPY . /app
 
 # Run main.py when the container launches
-CMD ["python", "src/flows.py"]
+CMD ["python", "src/flows_oneshot.py"]

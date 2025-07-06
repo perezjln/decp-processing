@@ -5,7 +5,6 @@ pyarrow
 tableschema
 frictionless==4.40.11
 ipykernel
-prefect==3.3.3
 pytest
 # Development dependencies (optional)
 # pre-commit
